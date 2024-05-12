@@ -35,6 +35,8 @@ export async function POST(request: Request) {
       await docker.pull("codercom/code-server");
     }
 
+    // ! : if you are not able to create any image then try to run `mkdir ~/.config` manualy
+
     const container = await docker.createContainer({
       Image: "codercom/code-server",
       name: name,
@@ -47,18 +49,29 @@ export async function POST(request: Request) {
             },
           ],
         },
-        Binds: [
-          `${homedir}/.config:/home/coder/.config`,
-          `${homedir}:/home/coder/project`,
-        ],
+        // Binds: [
+        // `${homedir}/.config:/home/coder/.config`,
+        // ],
       },
-      Env: [`DOCKER_USER=ADMIN`],
+      // Env: [`DOCKER_USER=root`],
     });
 
     POST_TO_CONTAINER[availablePorts] = container;
     CONTAINER_TO_POST[container.id] = availablePorts;
 
     await container.start();
+
+    const createdir = await container.exec({
+      Cmd: ["mkdir", "workspace"],
+      AttachStdin: true,
+      AttachStdout: true,
+    });
+
+    const streamcreatedir = await createdir.start({});
+    streamcreatedir.on("data", (chunk) => {
+      const output = chunk.toString();
+      console.log("output", output);
+    });
 
     const data = await container.exec({
       Cmd: ["cat", "/home/coder/.config/code-server/config.yaml"],
@@ -95,7 +108,7 @@ export async function POST(request: Request) {
         url: `http://${container.id.slice(
           0,
           12
-        )}-${availablePorts}.localhost:3005`,
+        )}-${availablePorts}.localhost:3005?folder=/home/coder/workspace`,
         id: container.id.slice(0, 12),
         password: password,
       }),
