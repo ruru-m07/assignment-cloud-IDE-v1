@@ -45,5 +45,7 @@ export async function POST(request: Request) {
     });
   });
 
-  return Response.json(password);
+  return Response.json({
+    password: password,
+  });
 }
