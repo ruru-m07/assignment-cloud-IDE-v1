@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Link from "next/link";
+import ListLogs from "./listLogs";
 
 const ListSpaces = ({
   space,
@@ -69,9 +70,10 @@ const ListSpaces = ({
     <Card className="w-full p-4 flex justify-between items-center rounded-none border-r-0 border-l-0 border-b-0 border-t">
       <div>
         <div className="flex items-center">
-          <p className="text-lg font-semibold">
-            {space.Names[0].replace("/", "")} {" - "}
+          <p className="text-lg font-semibold mr-2">
+            {space.Names[0].replace("/", "")}
           </p>
+          {" - "}
           <p className="text-muted-foreground text-xs mx-2">
             {space.Id.slice(0, 12)}
           </p>
@@ -155,6 +157,13 @@ const ListSpaces = ({
             ? "Start..."
             : "Start"}
         </Button>
+
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">Logs</Button>
+          </DialogTrigger>
+          <ListLogs space={space} />
+        </Dialog>
         {space.State === "running" ? (
           <Button asChild>
             <Link
