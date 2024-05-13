@@ -9,6 +9,7 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import Link from "next/link";
+import { ResponseNewSpace } from "@/types";
 
 const CreateSpace = ({ onSuccess }: { onSuccess: () => void }) => {
   const [name, setName] = useState("");
@@ -38,9 +39,15 @@ const CreateSpace = ({ onSuccess }: { onSuccess: () => void }) => {
         body: JSON.stringify({ name: name }),
       });
 
-      const data = await response.json();
+      const responseData: ResponseNewSpace = await response.json();
+      console.log("responseData", responseData)
+      const { data, error } = responseData;
+      if (error) {
+        setError(error);
+        return;
+      }
       setResponseData(data);
-      onSuccess()
+      onSuccess();
     } catch (error) {
       console.log(error);
     } finally {
