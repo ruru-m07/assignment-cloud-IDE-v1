@@ -14,18 +14,28 @@ export async function POST(request: Request) {
   const docker = new Docker();
   const homedir = os.homedir();
 
-  const availablePorts = (() => {
-    for (let i = 8000; i < 8999; i++) {
-      if (POST_TO_CONTAINER[i]) continue;
-      return `${i}`;
-    }
-  })();
+  console.log("start createing container", name);
+  console.log("homedir...", homedir);
 
-  if (!availablePorts) {
+  const minPort = 8000;
+  const maxPort = 8999;
+
+  let availablePort = null;
+
+  for (let port = minPort; port <= maxPort; port++) {
+    if (!POST_TO_CONTAINER[port]) {
+      availablePort = port;
+      break;
+    }
+  }
+
+  if (!availablePort) {
     return new Response(JSON.stringify({ error: "No available ports" }), {
       status: 500,
     });
   }
+
+  console.log("finding new port...", availablePort);
 
   try {
     const image = docker.getImage("codercom/code-server");
@@ -45,27 +55,27 @@ export async function POST(request: Request) {
           "8080/tcp": [
             {
               HostIp: "127.0.0.1",
-              HostPort: availablePorts,
+              HostPort: availablePort.toString(),
             },
           ],
         },
-        // Binds: [
-        // `${homedir}/.config:/home/coder/.config`,
-        // ],
+        Binds: [`${homedir}/.config:/home/coder/.config`],
       },
       // Env: [`DOCKER_USER=root`],
     });
 
-    POST_TO_CONTAINER[availablePorts] = container;
-    CONTAINER_TO_POST[container.id] = availablePorts;
+    POST_TO_CONTAINER[String(availablePort)] = container;
+    CONTAINER_TO_POST[container.id] = String(availablePort);
 
     await container.start();
+    console.log("container started...");
 
     const createdir = await container.exec({
       Cmd: ["mkdir", "workspace"],
       AttachStdin: true,
       AttachStdout: true,
     });
+    console.log("create workspace dir... DONE!");
 
     const streamcreatedir = await createdir.start({});
     streamcreatedir.on("data", (chunk) => {
@@ -84,7 +94,6 @@ export async function POST(request: Request) {
 
     stream.on("data", (chunk) => {
       const output = chunk.toString();
-      console.log("output", output);
       const lines = output.split("\n");
       for (const line of lines) {
         if (line.startsWith("password:")) {
@@ -95,6 +104,8 @@ export async function POST(request: Request) {
       }
     });
 
+    console.log("password found...", password);
+
     // Waiting for the stream to end before sending the response
     await new Promise((resolve) => {
       stream.on("end", () => {
@@ -102,26 +113,38 @@ export async function POST(request: Request) {
       });
     });
 
+    console.info("workspace created... DONE! sending response...");
     // Send the response with the password
-    return new Response(
-      JSON.stringify({
-        url: `http://${container.id.slice(
-          0,
-          12
-        )}-${availablePorts}.localhost:3005?folder=/home/coder/workspace`,
-        id: container.id.slice(0, 12),
-        password: password,
-      }),
+    return Response.json(
+      {
+        success: true,
+        data: {
+          url: `http://${container.id.slice(
+            0,
+            12
+          )}-${availablePort}.localhost:3005?folder=/home/coder/workspace`,
+          id: container.id.slice(0, 12),
+          password: password,
+        },
+        error: null,
+      },
       {
         status: 200,
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error:", error);
     // Return a response with an error message
-    return new Response(JSON.stringify({ error: error }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    const message = error?.json?.message;
+    return Response.json(
+      {
+        success: false,
+        data: null,
+        error: message || "An error occurred while creating the container",
+      },
+      {
+        status: 500,
+      }
+    );
   }
 }
