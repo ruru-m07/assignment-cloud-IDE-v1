@@ -30,7 +30,7 @@ https://github.com/ruru-m07/assignment-cloud-IDE-v1/assets/142723369/aa2bf3a8-af
 
 > ![image](https://github.com/ruru-m07/assignment-cloud-IDE-v1/assets/142723369/73b22b14-e085-46a3-bab9-e45814ce2a41)
 
-- copy the password and past in ide and click on submit
+- copy the password past in ide and click on submit
 
 > ![image](https://github.com/ruru-m07/assignment-cloud-IDE-v1/assets/142723369/85f043f5-253f-47f3-bebf-fd49d703a29d)
 
@@ -48,5 +48,9 @@ https://github.com/ruru-m07/assignment-cloud-IDE-v1/assets/142723369/aa2bf3a8-af
 
 - we can make a separate server for this scenario like a Redis server it helps to manage the port running in which machine and it's also too fast.
 
-- for this project, I use next to Handel backend and frontend both at the same time. but I say that it's better choices that we can make a different server for backend.
+- for this project, I use next to Handel backend and frontend both at the same time. but I say that it's a better choice that we can make a different server for the backend.
+
+## feedback
+
+leave your feedback https://github.com/ruru-m07/assignment-cloud-IDE-v1/discussions/2
 
