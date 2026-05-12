@@ -1,5 +1,3 @@
-### A big thanks to @piyushgarg-dev for this awesome project!
-
 ## preview
 
 https://github.com/ruru-m07/assignment-cloud-IDE-v1/assets/142723369/aa2bf3a8-af6b-484a-ba13-bd63b6148bfb
